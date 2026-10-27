@@ -1,9 +1,10 @@
 package cordobot.example.pronstika.data.repository
 
 import cordobot.example.pronstika.data.remote.WeatherApiService
-import cordobot.example.pronstika.data.remote.WeatherResponse
-import cordobot.example.pronstika.domain.model.WeatherModel
+import cordobot.example.pronstika.domain.model.WeatherForecast
 import cordobot.example.pronstika.domain.repository.WeatherRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -12,14 +13,25 @@ class WeatherRepositoryImpl @Inject constructor(
     private val api: WeatherApiService
 ) : WeatherRepository {
 
-    override suspend fun getWeather(city: String): Result<WeatherModel> {
+    override suspend fun getWeather(city: String): Result<WeatherForecast> {
         return try {
-            val response = api.getCurrentWeather(city)
-            Result.success(response.toDomain())
+            // Current conditions and forecast are requested in parallel
+            val forecast = coroutineScope {
+                val current = async { api.getCurrentWeather(city) }
+                val upcoming = async { api.getForecast(city) }
+                val forecastResponse = upcoming.await()
+                WeatherForecast(
+                    current = current.await().toDomain(),
+                    hourly = forecastResponse.list.toHourly(),
+                    daily = forecastResponse.list.toDaily(forecastResponse.city.timezone)
+                )
+            }
+            Result.success(forecast)
         } catch (e: HttpException) {
             val message = when (e.code()) {
                 401 -> "API key inválida"
                 404 -> "Ciudad no encontrada"
+                429 -> "Demasiadas consultas, intenta en un momento"
                 else -> "Error del servidor: ${e.code()}"
             }
             Result.failure(Exception(message))
@@ -30,17 +42,3 @@ class WeatherRepositoryImpl @Inject constructor(
         }
     }
 }
-
-// Mapper extension function
-fun WeatherResponse.toDomain() = WeatherModel(
-    city = name,
-    country = sys.country,
-    temperature = main.temp,
-    feelsLike = main.feels_like,
-    humidity = main.humidity,
-    description = weather.firstOrNull()?.description ?: "",
-    iconCode = weather.firstOrNull()?.icon ?: "",
-    windSpeed = wind.speed,
-    tempMin = main.temp_min,
-    tempMax = main.temp_max
-)

@@ -12,4 +12,13 @@ interface WeatherApiService {
         @Query("units") units: String = "metric",
         @Query("lang") lang: String = "es"
     ): WeatherResponse
+
+    // 5 days in 3-hour steps (40 entries)
+    @GET("forecast")
+    suspend fun getForecast(
+        @Query("q") city: String,
+        @Query("appid") apiKey: String = BuildConfig.WEATHER_API_KEY,
+        @Query("units") units: String = "metric",
+        @Query("lang") lang: String = "es"
+    ): ForecastResponse
 }

@@ -1,5 +1,6 @@
 package cordobot.example.pronstika.di
 
+import cordobot.example.pronstika.BuildConfig
 import cordobot.example.pronstika.data.remote.WeatherApiService
 import dagger.Module
 import dagger.Provides
@@ -19,8 +20,10 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
+            // Request logs (the URL carries the API key) only in debug builds
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
+                else HttpLoggingInterceptor.Level.NONE
             })
             .build()
 

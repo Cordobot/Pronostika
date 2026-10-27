@@ -1,15 +1,19 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+# Gradle / build
+.gradle/
+.kotlin/
+build/
 /captures
 .externalNativeBuild
 .cxx
+build_output.txt
+
+# Android Studio / IntelliJ
+*.iml
+.idea/
+
+# Local configuration and secrets (API keys live in local.properties)
 local.properties
+
+# OS
+.DS_Store
+Thumbs.db

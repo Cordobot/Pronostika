@@ -1,9 +1,21 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
+
+// The OpenWeather key is read from local.properties (not versioned) or from -PWEATHER_API_KEY
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val weatherApiKey: String = localProperties.getProperty("WEATHER_API_KEY")
+    ?: project.findProperty("WEATHER_API_KEY") as String?
+    ?: ""
 
 android {
     namespace = "cordobot.example.pronstika"
@@ -13,12 +25,12 @@ android {
         applicationId = "cordobot.example.pronstika"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "WEATHER_API_KEY", "\"${project.findProperty("WEATHER_API_KEY") ?: "d85b82d134b9c543a38148070e3af918"}\"")
+        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
     }
 
     buildFeatures {
@@ -39,8 +51,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures {
-        compose = true
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 
@@ -54,7 +66,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
@@ -72,6 +84,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
