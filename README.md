@@ -132,3 +132,5 @@ O abre el proyecto en Android Studio y ejecuta la configuración **app**.
 ---
 
 Desarrollado por **Adrián Alvarez** ([@Cordobot](https://github.com/Cordobot)) · Datos del clima por OpenWeather.
+
+© 2026 Adrián Alvarez. Todos los derechos reservados.
